@@ -1,0 +1,19 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+deezjobs = "FjTokNmnP9MUJhGYj2DRcXoVwVq3utSceieoA3roKX7g"
+
+[programs.devnet]
+deezjobs = "FjTokNmnP9MUJhGYj2DRcXoVwVq3utSceieoA3roKX7g"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "http://localhost:8899/"
+wallet = "./keys/authority.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
