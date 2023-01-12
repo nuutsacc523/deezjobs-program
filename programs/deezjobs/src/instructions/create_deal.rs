@@ -27,7 +27,7 @@ pub struct CreateDeal<'info> {
         bump,
         space = Deal::len()
     )]
-    pub deal: Account<'info, Deal>,
+    pub deal: Box<Account<'info, Deal>>,
 
     #[account(
         init,
@@ -40,28 +40,28 @@ pub struct CreateDeal<'info> {
         token::mint = mint,
         token::authority = deal,
     )]
-    pub escrow: Account<'info, TokenAccount>,
+    pub escrow: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
         constraint = owner_wallet.owner == owner.key(),
         constraint = owner_wallet.mint == mint.key(),
     )]
-    pub owner_wallet: Account<'info, TokenAccount>,
+    pub owner_wallet: Box<Account<'info, TokenAccount>>,
 
     #[account(
         // TODO: will fail for native token
         // Solution: possibly put every account involved to optional
         constraint = mint.key() == gig.mint.unwrap().key(),
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
         constraint = gig.state == 1,
         constraint = gig.asking <= params.offer @ CustomError::InsufficientOffer,
     )]
-    pub gig: Account<'info, Gig>,
+    pub gig: Box<Account<'info, Gig>>,
 
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -70,7 +70,7 @@ pub struct CreateDeal<'info> {
         seeds = [b"config"],
         bump = config.bump,
     )]
-    pub config: Account<'info, Config>,
+    pub config: Box<Account<'info, Config>>,
 
     pub system_program: Program<'info, System>,
 
@@ -124,8 +124,16 @@ pub fn create_deal_handler(ctx: Context<CreateDeal>, params: CreateDealParams) -
     deal.client = client.key();
     deal.time_created = clock.unix_timestamp;
     deal.deadline = params.deadline;
+
     // TODO: referrer could be the client itself, exploiting the pay
-    deal.referrer = params.referrer;
+    match params.referrer {
+        Some(referrer) => {
+            if client.key() != referrer {
+                deal.referrer = Some(referrer);
+            }
+        }
+        None => (),
+    }
 
     if deal.time_created + gig.min_completion_time > params.deadline {
         return Err(error!(CustomError::DeadlineTooShort));

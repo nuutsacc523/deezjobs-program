@@ -63,6 +63,8 @@ pub fn close_deal_handler(ctx: Context<CloseDeal>) -> Result<()> {
     let escrow = &mut ctx.accounts.escrow;
     let gig = &ctx.accounts.gig;
 
+    // Transfer escrow funds back to the client
+
     let gig_key = gig.key();
     let client_key = client.key();
     let deal_bump = deal.bump.to_le_bytes();
