@@ -4,7 +4,6 @@ use anchor_spl::token::Mint;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateGigParams {
-    pub is_published: bool,
     pub category: u8,
     pub skills: u64,
     pub asking: u64,
@@ -51,7 +50,7 @@ pub fn create_gig_handler(ctx: Context<CreateGig>, params: CreateGigParams) -> R
         None => None,
     };
 
-    gig.state = if params.is_published { 1 } else { 0 };
+    gig.state = 1; // if params.is_published { 1 } else { 0 };
     gig.pending_deals = 0;
     gig.category = params.category;
     gig.skills = params.skills;
