@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{Mint, TokenAccount, Token}, associated_token::AssociatedToken};
+use anchor_spl::{token::{Mint, TokenAccount, Token, Transfer}, associated_token::AssociatedToken};
 
 use crate::states::{Config, Gig, Deal};
 
@@ -27,7 +27,8 @@ pub struct CompleteDeal<'info> {
         mut,
         constraint = client.key() == deal.client.key(),
     )]
-    pub client: Signer<'info>,
+    /// CHECK:
+    pub client: UncheckedAccount<'info>,
 
     #[account(
         constraint = mint.key() == gig.mint.unwrap().key(),
@@ -85,19 +86,23 @@ pub struct CompleteDeal<'info> {
     )]
     pub config: Box<Account<'info, Config>>,
 
+    #[account(
+        mut,
+        constraint = signer.key() == client.key() || signer.key() == config.authority.key(),
+    )]
+    pub signer: Signer<'info>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>,
 }
 
-// distribute escrow funds (to freelancer, to referrer, remainder to treasury)
-// close escrow account (retain deal account for history purposes)
 pub fn complete_deal_handler(ctx: Context<CompleteDeal>) -> Result<()> {
 
     let gig = &mut ctx.accounts.gig;
     let deal = &mut ctx.accounts.deal;
-    let client = &ctx.accounts.client;
+    let client = &mut ctx.accounts.client;
     let config = &ctx.accounts.config;
 
     let escrow = &mut ctx.accounts.escrow;
@@ -108,7 +113,7 @@ pub fn complete_deal_handler(ctx: Context<CompleteDeal>) -> Result<()> {
     gig.pending_deals -= 1;
     deal.state |= 8;
 
-    // Compute pay less fees
+    // Compute fees.
 
     let gig_key = gig.key();
     let client_key = client.key();
@@ -123,19 +128,97 @@ pub fn complete_deal_handler(ctx: Context<CompleteDeal>) -> Result<()> {
 
     let deal_sig = vec![inner.as_slice()];
 
-    // let transfer_ix = Transfer {
-    //     from: escrow.to_account_info(),
-    //     to: client_wallet.to_account_info(),
-    //     authority: deal.to_account_info(),
-    // };
+    let freelancer_fee_percentage: u64 = config.freelancer_fee_percentage.try_into().unwrap();    
 
-    // let cpi_ctx = CpiContext::new_with_signer(
-    //     ctx.accounts.token_program.to_account_info(),
-    //     transfer_ix,
-    //     deal_sig.as_slice(),
-    // );
+    let freelancer_fee = freelancer_fee_percentage
+        .checked_mul(deal.offer)
+        .unwrap()
+        .checked_div(100_00)
+        .unwrap();
 
-    // anchor_spl::token::transfer(cpi_ctx, escrow.amount)?;
+    let referral_pay = match referrer_token_account {
+        Some(_) => {
+            let referral_fee_percentage: u64 = config.referral_fee_percentage.try_into().unwrap();    
+
+            referral_fee_percentage
+                .checked_mul(deal.offer)
+                .unwrap()
+                .checked_div(100_00)
+                .unwrap()
+        },
+        None => 0,
+    };
+
+    let freelancer_pay = deal.offer - freelancer_fee - referral_pay;
+    let treasury_pay = escrow.amount - freelancer_pay - referral_pay;
+
+    // Transfer to freelancer.
+
+    let transfer_ix = Transfer {
+        from: escrow.to_account_info(),
+        to: freelancer_token_account.to_account_info(),
+        authority: deal.to_account_info(),
+    };
+
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        transfer_ix,
+        deal_sig.as_slice(),
+    );
+
+    anchor_spl::token::transfer(cpi_ctx, freelancer_pay)?;
+
+    // Transfer to referrer.
+
+    match referrer_token_account {
+        Some(referrer_token_account) => {
+            let transfer_ix = Transfer {
+                from: escrow.to_account_info(),
+                to: referrer_token_account.to_account_info(),
+                authority: deal.to_account_info(),
+            };
+        
+            let cpi_ctx = CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                transfer_ix,
+                deal_sig.as_slice(),
+            );
+        
+            anchor_spl::token::transfer(cpi_ctx, referral_pay)?;
+        },
+        None => (),
+    }
+
+    // Transfer to treasury.
+    // Remainder of the escrow amount, this should include the client's fee as well.
+
+    let transfer_ix = Transfer {
+        from: escrow.to_account_info(),
+        to: treasury_token_account.to_account_info(),
+        authority: deal.to_account_info(),
+    };
+
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        transfer_ix,
+        deal_sig.as_slice(),
+    );
+
+    anchor_spl::token::transfer(cpi_ctx, treasury_pay)?;
+    
+    // Close escrow account, give back the rent to client.
+
+    let source_account_info = escrow.to_account_info();
+    let dest_account_info = client.to_account_info();
+
+    let dest_starting_lamports = dest_account_info.lamports();
+    **dest_account_info.lamports.borrow_mut() = dest_starting_lamports
+        .checked_add(source_account_info.lamports())
+        .unwrap();
+    **source_account_info.lamports.borrow_mut() = 0;
+
+    let mut source_data = source_account_info.data.borrow_mut();
+    source_data.fill(0);
 
     Ok(())
 }
