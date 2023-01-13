@@ -5,7 +5,7 @@ pub mod states;
 
 pub use instructions::*;
 
-declare_id!("FjTokNmnP9MUJhGYj2DRcXoVwVq3utSceieoA3roKX7g");
+declare_id!("46LWeAV9rm3tsq8TwW61WLj96n41Y7YGoUqw3UhLKK67");
 
 #[program]
 pub mod deezjobs {

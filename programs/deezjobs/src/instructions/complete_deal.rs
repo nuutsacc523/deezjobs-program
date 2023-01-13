@@ -58,6 +58,7 @@ pub struct CompleteDeal<'info> {
     #[account(
         constraint = referrer.key() == deal.referrer.unwrap().key(),
     )]
+    /// CHECK:
     pub referrer: Option<UncheckedAccount<'info>>,
 
     #[account(
@@ -71,6 +72,7 @@ pub struct CompleteDeal<'info> {
     #[account(
         constraint = treasury.key() == config.treasury.key(),
     )]
+    /// CHECK:
     pub treasury: UncheckedAccount<'info>,
 
     #[account(
