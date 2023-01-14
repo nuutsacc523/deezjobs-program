@@ -1,5 +1,8 @@
 use anchor_lang::{prelude::*, solana_program::clock};
-use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{Mint, Token, TokenAccount, Transfer},
+};
 
 use crate::{
     states::{Config, Deal, Gig},
@@ -32,20 +35,15 @@ pub struct CreateDeal<'info> {
     #[account(
         init,
         payer = owner,
-        seeds = [
-            b"deal_escrow",
-            deal.key().as_ref(),
-        ],
-        bump,
-        token::mint = mint,
-        token::authority = deal,
+        associated_token::mint = mint,
+        associated_token::authority = deal,
     )]
     pub escrow: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
-        constraint = owner_wallet.owner == owner.key(),
-        constraint = owner_wallet.mint == mint.key(),
+        associated_token::mint = mint,
+        associated_token::authority = owner,
     )]
     pub owner_wallet: Box<Account<'info, TokenAccount>>,
 
@@ -73,9 +71,8 @@ pub struct CreateDeal<'info> {
     pub config: Box<Account<'info, Config>>,
 
     pub system_program: Program<'info, System>,
-
     pub token_program: Program<'info, Token>,
-
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -116,7 +113,6 @@ pub fn create_deal_handler(ctx: Context<CreateDeal>, params: CreateDealParams) -
     anchor_spl::token::transfer(cpi_ctx, u64::from(total_escrow_amount))?;
 
     deal.bump = *ctx.bumps.get("deal").unwrap();
-    deal.escrow_bump = *ctx.bumps.get("escrow").unwrap();
     deal.offer = params.offer;
     deal.state = 1;
     deal.gig = gig.key();

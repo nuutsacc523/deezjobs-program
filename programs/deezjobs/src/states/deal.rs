@@ -6,9 +6,6 @@ pub struct Deal {
     /// Bump nonce of the PDA. (1)
     pub bump: u8,
 
-    /// Bump nonce of the escrow token account. (1)
-    pub escrow_bump: u8,
-
     /// Owner of this deal. (32)
     pub client: Pubkey,
 
@@ -43,6 +40,6 @@ pub struct Deal {
 
 impl Deal {
     pub fn len() -> usize {
-        8 + 1 + 1 + 32 + 1 + 32 + 32 + 8 + 8 + 8 + 8 + 33
+        8 + 1 + 32 + 1 + 32 + 32 + 8 + 8 + 8 + 8 + 33
     }
 }

@@ -3,10 +3,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-deezjobs = "FjTokNmnP9MUJhGYj2DRcXoVwVq3utSceieoA3roKX7g"
+deezjobs = "7dZuSgZaiEJvTxqmN3KXm8tV6g5zSqxz5fh65wJ9dv2H"
 
 [programs.devnet]
-deezjobs = "FjTokNmnP9MUJhGYj2DRcXoVwVq3utSceieoA3roKX7g"
+deezjobs = "7dZuSgZaiEJvTxqmN3KXm8tV6g5zSqxz5fh65wJ9dv2H"
 
 [registry]
 url = "https://api.apr.dev"

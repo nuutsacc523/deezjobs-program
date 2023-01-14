@@ -70,6 +70,13 @@ export class TokenMint {
     mintAuthority: Keypair,
   ): Promise<TokenMint> {
     const usdcKp = Keypair.fromSecretKey(new Uint8Array(usdcDummyKp))
+
+    const existingToken = await checkAccountExist(connection, usdcKp.publicKey)
+
+    if (existingToken) {
+      return new TokenMint(usdcKp.publicKey, mintAuthority, connection)
+    }
+
     let token = await createMint(
       connection,
       feePayer,
@@ -84,21 +91,21 @@ export class TokenMint {
   /**
    * Get or create the associated token account for the specified `wallet`
    * @param wallet The wallet to get the ATA for
-   * @param allowOffcurse Allow the owner account to be a PDA
+   * @param allowOffCurve Allow the owner account to be a PDA
    * @returns
    */
   async getAssociatedTokenAccount(
     wallet: PublicKey,
-    allowOffcurse: boolean = false,
+    allowOffCurve: boolean = false,
   ): Promise<PublicKey> {
     const ata = await getAssociatedTokenAddress(
       this.token,
       wallet,
-      allowOffcurse,
+      allowOffCurve,
     )
     const exist = await checkAccountExist(this.connection, ata)
 
-    if (exist) {
+    if (exist || allowOffCurve) {
       return ata
     }
 
@@ -143,10 +150,10 @@ export const getUsdc = async (connection: Connection, authority: Keypair) => {
   } else if (await checkAccountExist(connection, UsdcDevnetPubkey)) {
     return UsdcDevnetPubkey
   } else {
-    // initialize dummy USDC, send 1b to authority
+    // initialize dummy USDC, send 1m to authority
     const mint = await TokenMint.init(connection, authority, authority)
     const ata = await mint.getAssociatedTokenAccount(authority.publicKey)
-    mint.mintInto(ata, 1_000_000_000_000_000)
+    mint.mintInto(ata, 1_000_000_000_000)
 
     return mint.token
   }

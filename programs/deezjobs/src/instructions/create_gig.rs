@@ -41,7 +41,7 @@ pub struct CreateGig<'info> {
 
 pub fn create_gig_handler(ctx: Context<CreateGig>, params: CreateGigParams) -> Result<()> {
     let gig = &mut ctx.accounts.gig;
-    gig.bump = *ctx.bumps.get("bump").unwrap();
+    gig.bump = *ctx.bumps.get("gig").unwrap();
     gig.nonce = ctx.accounts.id.key().to_bytes()[..8].try_into().unwrap();
     gig.payer = ctx.accounts.payer.key();
     gig.owner = ctx.accounts.owner.key();

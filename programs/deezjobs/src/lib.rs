@@ -5,7 +5,7 @@ pub mod states;
 
 pub use instructions::*;
 
-declare_id!("46LWeAV9rm3tsq8TwW61WLj96n41Y7YGoUqw3UhLKK67");
+declare_id!("7dZuSgZaiEJvTxqmN3KXm8tV6g5zSqxz5fh65wJ9dv2H");
 
 #[program]
 pub mod deezjobs {
@@ -27,8 +27,16 @@ pub mod deezjobs {
         create_deal_handler(ctx, params)
     }
 
+    pub fn close_deal(ctx: Context<CloseDeal>) -> Result<()> {
+        close_deal_handler(ctx)
+    }
+
     pub fn accept_deal(ctx: Context<AcceptDeal>) -> Result<()> {
         accept_deal_handler(ctx)
+    }
+
+    pub fn complete_deal(ctx: Context<CompleteDeal>) -> Result<()> {
+        complete_deal_handler(ctx)
     }
 }
 

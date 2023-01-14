@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{Mint, TokenAccount, Token, Transfer}, associated_token::AssociatedToken};
+use anchor_spl::{token::{Mint, TokenAccount, Token, Transfer, CloseAccount}, associated_token::AssociatedToken};
 
 use crate::states::{Config, Gig, Deal};
 
@@ -37,13 +37,8 @@ pub struct CompleteDeal<'info> {
 
     #[account(
         mut,
-        seeds = [
-            b"deal_escrow",
-            deal.key().as_ref(),
-        ],
-        bump = deal.escrow_bump,
-        constraint = escrow.owner == deal.key(),
-        constraint = escrow.mint == mint.key(),
+        associated_token::mint = mint,
+        associated_token::authority = deal,
     )]
     pub escrow: Box<Account<'info, TokenAccount>>,
 
@@ -210,17 +205,19 @@ pub fn complete_deal_handler(ctx: Context<CompleteDeal>) -> Result<()> {
     
     // Close escrow account, give back the rent to client.
 
-    let source_account_info = escrow.to_account_info();
-    let dest_account_info = client.to_account_info();
+    let cpi_close = CloseAccount {
+        account: escrow.to_account_info(),
+        destination: client.to_account_info(),
+        authority: deal.to_account_info(),
+    };
 
-    let dest_starting_lamports = dest_account_info.lamports();
-    **dest_account_info.lamports.borrow_mut() = dest_starting_lamports
-        .checked_add(source_account_info.lamports())
-        .unwrap();
-    **source_account_info.lamports.borrow_mut() = 0;
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(), 
+        cpi_close, 
+        deal_sig.as_slice()
+    );
 
-    let mut source_data = source_account_info.data.borrow_mut();
-    source_data.fill(0);
+    anchor_spl::token::close_account(cpi_ctx)?;
 
     Ok(())
 }
