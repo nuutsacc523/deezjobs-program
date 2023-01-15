@@ -15,7 +15,7 @@ pub struct Config {
     /// Fee to collect from the client for every accepted deal. Percentage with 2 decimal places (0 to 10000). (2)
     pub client_fee_percentage: u16,
 
-    /// If client fee is less than this value, this value will serve as the fee (in USDC). 6 decimal places. (2)
+    /// If client fee is less than this value, this value will serve as the fee (in USDC). 6 decimal places. (8)
     pub client_fee_min: u64,
 
     /// Fee to collect from the freelancer for each completed deal. Percentage with 2 decimal places (0 to 10000). (2)

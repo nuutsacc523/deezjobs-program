@@ -1,11 +1,11 @@
-use crate::states::Gig;
-use anchor_lang::prelude::*;
+use crate::states::{Gig, Config};
+use anchor_lang::{prelude::*};
 
 #[derive(Accounts)]
 pub struct CloseGig<'info> {
     #[account(
         mut,
-        has_one = owner,
+        
         constraint = gig.pending_deals == 0,
     )]
     pub gig: Account<'info, Gig>,
@@ -17,8 +17,13 @@ pub struct CloseGig<'info> {
     /// CHECK: constraint to gig's payer
     pub payer: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = owner.key() == gig.owner.key() || owner.key() == config.authority.key(),
+    )]
     pub owner: Signer<'info>,
+
+    pub config: Account<'info, Config>,
 }
 
 pub fn close_gig_handler(ctx: Context<CloseGig>) -> Result<()> {

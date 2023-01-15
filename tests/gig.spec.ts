@@ -223,6 +223,7 @@ describe('Gig & Deal interaction', () => {
           gig: gigPda,
           owner: freelancer.publicKey,
           payer: freelancer.publicKey,
+          config: configPda,
         })
         .signers([freelancer])
         .rpc()
@@ -285,7 +286,6 @@ describe('Gig & Deal interaction', () => {
       .signers([client])
       .rpc()
 
-    // TODO: check token accounts amount and see if they get paid properly
     const freelancerBalance =
       await program.provider.connection.getTokenAccountBalance(freelancerUsdc)
 
@@ -299,6 +299,7 @@ describe('Gig & Deal interaction', () => {
         gig: gigPda,
         owner: freelancer.publicKey,
         payer: freelancer.publicKey,
+        config: configPda,
       })
       .signers([freelancer])
       .rpc()

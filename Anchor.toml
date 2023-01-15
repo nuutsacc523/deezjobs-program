@@ -3,10 +3,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-deezjobs = "7dZuSgZaiEJvTxqmN3KXm8tV6g5zSqxz5fh65wJ9dv2H"
+deezjobs = "A55j3MBSRHrKvpgACjSCAdgrQ4cQ5HsFf2omaRsiSHcU"
 
 [programs.devnet]
-deezjobs = "7dZuSgZaiEJvTxqmN3KXm8tV6g5zSqxz5fh65wJ9dv2H"
+deezjobs = "A55j3MBSRHrKvpgACjSCAdgrQ4cQ5HsFf2omaRsiSHcU"
 
 [registry]
 url = "https://api.apr.dev"
@@ -16,5 +16,5 @@ cluster = "http://localhost:8899/"
 wallet = "./keys/authority.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.spec.ts"
 init = "yarn run ts-node --project ./tsconfig.json scripts/init.ts"

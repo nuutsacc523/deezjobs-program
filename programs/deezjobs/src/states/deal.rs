@@ -9,7 +9,7 @@ pub struct Deal {
     /// Owner of this deal. (32)
     pub client: Pubkey,
 
-    /// State of this Gig. (1)
+    /// State of this Deal. (1)
     /// * 1  - Published
     /// * 2  - Accepted by the freelancer
     /// * 4  - Has dispute
