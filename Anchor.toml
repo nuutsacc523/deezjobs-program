@@ -12,7 +12,7 @@ deezjobs = "A55j3MBSRHrKvpgACjSCAdgrQ4cQ5HsFf2omaRsiSHcU"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "http://localhost:8899/"
+cluster = "devnet"
 wallet = "./keys/authority.json"
 
 [scripts]

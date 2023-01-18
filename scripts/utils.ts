@@ -6,6 +6,7 @@ import {
   getAssociatedTokenAddress,
 } from '@solana/spl-token'
 import usdcDummyKp from './usdc_dummy.json'
+import { program } from '../tests/common'
 
 export interface AnchorWallet {
   publicKey: PublicKey
@@ -137,24 +138,18 @@ export class TokenMint {
 }
 
 export const getUsdc = async (connection: Connection, authority: Keypair) => {
-  // check USDC availability
-  const UsdcMainnetPubkey = new PublicKey(
-    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-  )
-  const UsdcDevnetPubkey = new PublicKey(
-    '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-  )
+  const endpoint = program.provider.connection.rpcEndpoint
 
-  if (await checkAccountExist(connection, UsdcMainnetPubkey)) {
-    return UsdcMainnetPubkey
-  } else if (await checkAccountExist(connection, UsdcDevnetPubkey)) {
-    return UsdcDevnetPubkey
-  } else {
+  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
     // initialize dummy USDC, send 1m to authority
     const mint = await TokenMint.init(connection, authority, authority)
     const ata = await mint.getAssociatedTokenAccount(authority.publicKey)
     mint.mintInto(ata, 1_000_000_000_000)
 
     return mint.token
+  } else if (endpoint.includes('devnet')) {
+    return new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU')
   }
+
+  return new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
 }

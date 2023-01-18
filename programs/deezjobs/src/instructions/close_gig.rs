@@ -1,11 +1,10 @@
-use crate::states::{Gig, Config};
-use anchor_lang::{prelude::*};
+use crate::states::{Config, Gig};
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct CloseGig<'info> {
     #[account(
         mut,
-        
         constraint = gig.pending_deals == 0,
     )]
     pub gig: Account<'info, Gig>,
