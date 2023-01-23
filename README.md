@@ -17,5 +17,5 @@ A decentralized freelancing platform for safe and efficient client-freelancer co
 
 ### Official links
 * Pitch Deck: https://tinyurl.com/Deez-Jobs-Deck
-* Twitter: https://twitter.com/DeezJobs_
+* Twitter: [https://twitter.com/DeezJobs_](https://twitter.com/DeezJobs_)
 * Website: https://deezjobs.io
