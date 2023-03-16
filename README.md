@@ -3,7 +3,7 @@
 ### Values
 * For Freelancers - Post a service or find a job you want to work on, create a solution, and get paid.
 * For Clients - Post a job or find a service that fits you, send an offer, and receive high-quality work within your budget.
-* For Developers - Build your own gig marketplace, and easily fetch existing on-chain job and gig listings through our APIs.
+* For Developers - Build specific niche gig marketplaces using our SDK and APIs to access existing on-chain job and gig listings.
 
 ### Our solution
 * Pay upfront - not after - The smart contract will hold the upfront payment until the job is completed.
